@@ -3,7 +3,7 @@
 A **Streamlit web application** that predicts the likelihood of diabetes using machine learning models. Built with Python, scikit-learn, XGBoost, and Streamlit.
 
 ## 🌐 Live Demo
-Try the app here 👉 **[Live Demo](https://your-app-link.streamlit.app)**
+Try the app here 👉 **[Live Demo](https://diabetes-prediction-app-dsowr32nheef4vaz8p82za.streamlit.app/)**
 
 ## 📂 Project Structure
 ```
