@@ -652,16 +652,7 @@ for i, (_, row) in enumerate(extended_results_df.head(3).iterrows()):
     for param, value in best_params.items():
         print(f"   • {param}: {value}")
 
-import joblib
 
-# Save best model
-best_model = extended_results[extended_results_df.iloc[0]['Model']]['model']
-joblib.dump(best_model, 'diabetes_model.pkl')
-
-# Save scaler
-joblib.dump(scaler, 'diabetes_scaler.pkl')
-
-print("✅ Model and scaler saved!")
 
 """## 🩺 Diabetes Prediction Engine - Final Deployment
 
@@ -715,6 +706,51 @@ predict_diabetes_simple()
 """# Deployment with Streamlit"""
 
 import streamlit as st
+import pandas as pd
+import joblib
 
-st.title("My First Streamlit App")
-st.write("Hello, this is my project!")
+# Load the trained model and scaler
+model = joblib.load("diabetes_model.pkl")
+scaler = joblib.load("diabetes_scaler.pkl")
+
+# App title and description
+st.title("🩺 Diabetes Prediction App")
+st.write("Enter patient details below to predict the risk of diabetes:")
+
+# User input fields
+pregnancies = st.number_input("Pregnancies", min_value=0, max_value=20, value=1)
+glucose = st.number_input("Glucose", min_value=0, max_value=200, value=120)
+blood_pressure = st.number_input("Blood Pressure", min_value=0, max_value=150, value=70)
+skin_thickness = st.number_input("Skin Thickness", min_value=0, max_value=100, value=20)
+insulin = st.number_input("Insulin", min_value=0, max_value=900, value=80)
+bmi = st.number_input("BMI", min_value=0.0, max_value=70.0, value=25.0)
+diabetes_pedigree = st.number_input("Diabetes Pedigree Function", min_value=0.0, max_value=3.0, value=0.5)
+age = st.number_input("Age", min_value=10, max_value=100, value=33)
+
+# Prediction button
+if st.button("Predict"):
+    # Create extra features
+    bmi_cat = 3 if bmi >= 30 else 2 if bmi >= 25 else 1 if bmi >= 18.5 else 0
+    age_group = 2 if age >= 50 else 1 if age >= 30 else 0
+    glucose_cat = 2 if glucose >= 126 else 1 if glucose >= 100 else 0
+
+    # Prepare input data as DataFrame
+    input_data = pd.DataFrame([[pregnancies, glucose, blood_pressure, skin_thickness,
+                               insulin, bmi, diabetes_pedigree, age,
+                               bmi_cat, age_group, glucose_cat]],
+                             columns=['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
+                                    'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age',
+                                    'BMI_Category', 'Age_Group', 'Glucose_Category'])
+
+    # Scale input data
+    input_scaled = scaler.transform(input_data)
+
+    # Make prediction
+    prediction = model.predict(input_scaled)[0]
+    probability = model.predict_proba(input_scaled)[0][1]
+
+    # Show result
+    result = "🔴 DIABETIC" if prediction == 1 else "✅ NOT DIABETIC"
+
+    st.subheader(f"Prediction: {result}")
+    st.write(f"Risk Probability: {probability:.1%}")
